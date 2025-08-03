@@ -5,10 +5,21 @@ import logging
 audit_logger = logging.getLogger('audit')
 audit_logger.setLevel(logging.INFO)
 
-class NotFoundError(Exception):
+# Custom exception hierarchy
+class AppError(Exception):
+    """Base application exception"""
     pass
 
-class PermissionDeniedError(Exception):
+class ValidationError(AppError):
+    """Raised when input validation fails"""
+    pass
+
+class NotFoundError(AppError):
+    """Raised when a resource is not found"""
+    pass
+
+class PermissionDeniedError(AppError):
+    """Raised when user lacks permission for an operation"""
     pass
 
 class MockDB:
@@ -40,11 +51,11 @@ class MockDB:
 
 def update_merchant_group(user_id, merchant_id, group_id):
     if not user_id:
-        raise ValueError("user_id must be provided")
+        raise ValidationError("user_id must be provided")
     if not merchant_id:
-        raise ValueError("merchant_id must be provided")
+        raise ValidationError("merchant_id must be provided")
     if not group_id:
-        raise ValueError("group_id must be provided")
+        raise ValidationError("group_id must be provided")
 
     if not MockDB.user_exists(user_id):
         raise NotFoundError(f"User {user_id} not found")

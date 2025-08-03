@@ -2,6 +2,7 @@
 import pytest
 from merchant_service import (
     update_merchant_group,
+    ValidationError,
     NotFoundError,
     PermissionDeniedError
 )
@@ -12,7 +13,7 @@ def test_successful_update():
     assert result["updated_merchant"]["group_id"] == 2
 
 def test_missing_ids():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         update_merchant_group(None, 101, 2)
 
 def test_user_not_found():
