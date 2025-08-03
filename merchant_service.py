@@ -39,8 +39,12 @@ class MockDB:
         return cls.merchants[merchant_id]
 
 def update_merchant_group(user_id, merchant_id, group_id):
-    if not user_id or not merchant_id or not group_id:
-        raise ValueError("All IDs must be provided")
+    if not user_id:
+        raise ValueError("user_id must be provided")
+    if not merchant_id:
+        raise ValueError("merchant_id must be provided")
+    if not group_id:
+        raise ValueError("group_id must be provided")
 
     if not MockDB.user_exists(user_id):
         raise NotFoundError(f"User {user_id} not found")
