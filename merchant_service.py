@@ -1,4 +1,9 @@
 # services/merchant_service.py
+import logging
+
+# Configure audit logger
+audit_logger = logging.getLogger('audit')
+audit_logger.setLevel(logging.INFO)
 
 class NotFoundError(Exception):
     pass
@@ -48,8 +53,8 @@ def update_merchant_group(user_id, merchant_id, group_id):
 
     updated = MockDB.update_merchant_group(merchant_id, group_id)
 
-    # Audit log placeholder
-    print(f"[AUDIT] User {user_id} updated merchant {merchant_id} to group {group_id}")
+    # Audit log
+    audit_logger.info("User %s updated merchant %s to group %s", user_id, merchant_id, group_id)
 
     return {
         "status": "success",
