@@ -1,77 +1,58 @@
-# services/merchant_service.py
-import logging
-
-# Configure audit logger
-audit_logger = logging.getLogger('audit')
-audit_logger.setLevel(logging.INFO)
-
-# Custom exception hierarchy
-class AppError(Exception):
-    """Base application exception"""
-    pass
-
-class ValidationError(AppError):
-    """Raised when input validation fails"""
-    pass
-
-class NotFoundError(AppError):
-    """Raised when a resource is not found"""
-    pass
-
-class PermissionDeniedError(AppError):
-    """Raised when user lacks permission for an operation"""
-    pass
-
-class MockDB:
-    users = {1: "Alice", 2: "Bob"}
-    merchants = {101: {"name": "Merchant A", "group_id": None}, 102: {"name": "Merchant B", "group_id": 1}}
-    groups = {1: "Group One", 2: "Group Two"}
-    permissions = {1: [101, 102], 2: [102]}  # user_id: [merchant_ids]
-
-    @classmethod
-    def user_exists(cls, user_id):
-        return user_id in cls.users
-
-    @classmethod
-    def merchant_exists(cls, merchant_id):
-        return merchant_id in cls.merchants
-
-    @classmethod
-    def group_exists(cls, group_id):
-        return group_id in cls.groups
-
-    @classmethod
-    def user_can_edit_merchant(cls, user_id, merchant_id):
-        return merchant_id in cls.permissions.get(user_id, [])
-
-    @classmethod
-    def update_merchant_group(cls, merchant_id, group_id):
-        cls.merchants[merchant_id]["group_id"] = group_id
-        return cls.merchants[merchant_id]
-
-def update_merchant_group(user_id, merchant_id, group_id):
-    if not user_id:
-        raise ValidationError("user_id must be provided")
-    if not merchant_id:
-        raise ValidationError("merchant_id must be provided")
-    if not group_id:
-        raise ValidationError("group_id must be provided")
-
-    if not MockDB.user_exists(user_id):
-        raise NotFoundError(f"User {user_id} not found")
-    if not MockDB.merchant_exists(merchant_id):
-        raise NotFoundError(f"Merchant {merchant_id} not found")
-    if not MockDB.group_exists(group_id):
-        raise NotFoundError(f"Group {group_id} not found")
-    if not MockDB.user_can_edit_merchant(user_id, merchant_id):
-        raise PermissionDeniedError(f"User {user_id} cannot update merchant {merchant_id}")
-
-    updated = MockDB.update_merchant_group(merchant_id, group_id)
-
-    # Audit log
-    audit_logger.info("User %s updated merchant %s to group %s", user_id, merchant_id, group_id)
-
+def classify_merchant_risk(merchant_id, merchant_data):
+    # Enhanced risk classification with granular levels
+    name = merchant_data["name"].lower()
+    group_id = merchant_data.get("group_id")
+    transaction_volume = merchant_data.get("transaction_volume", 0)
+    
+    risk_score = 0
+    
+    # Name-based risk factors
+    high_risk_keywords = ["crypto", "bitcoin", "gambling", "casino", "forex"]
+    medium_risk_keywords = ["loan", "credit", "investment", "trading", "ecommerce"]
+    
+    if any(keyword in name for keyword in high_risk_keywords):
+        risk_score += 40
+    elif any(keyword in name for keyword in medium_risk_keywords):
+        risk_score += 25
+    
+    # Group-based risk factors
+    if group_id == 1:  # High-risk group
+        risk_score += 30
+    elif group_id == 2:  # Medium-risk group
+        risk_score += 15
+    elif group_id == 3:  # Regulated group
+        risk_score += 10
+    
+    # Transaction volume risk factors
+    if transaction_volume > 1000000:  # Over 1M
+        risk_score += 20
+    elif transaction_volume > 100000:  # Over 100K
+        risk_score += 10
+    elif transaction_volume > 10000:  # Over 10K
+        risk_score += 5
+    
+    # Determine granular risk level based on score with more granular levels
+    if risk_score >= 90:
+        risk_level = "critical"
+    elif risk_score >= 80:
+        risk_level = "very_high"
+    elif risk_score >= 65:
+        risk_level = "high"
+    elif risk_score >= 50:
+        risk_level = "moderate_high"
+    elif risk_score >= 35:
+        risk_level = "medium"
+    elif risk_score >= 25:
+        risk_level = "moderate_low"
+    elif risk_score >= 15:
+        risk_level = "low"
+    elif risk_score >= 5:
+        risk_level = "very_low"
+    else:
+        risk_level = "minimal"
+    
     return {
-        "status": "success",
-        "updated_merchant": updated
+        "merchant_id": merchant_id,
+        "risk_level": risk_level,
+        "risk_score": risk_score
     }
