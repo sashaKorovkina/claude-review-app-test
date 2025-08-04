@@ -8,7 +8,7 @@ def classify_merchant_risk(merchant_id, merchant_data):
     
     # Name-based risk factors
     high_risk_keywords = ["crypto", "bitcoin", "gambling", "casino", "forex"]
-    medium_risk_keywords = ["loan", "credit", "investment", "trading"]
+    medium_risk_keywords = ["loan", "credit", "investment", "trading", "ecommerce"]
     
     if any(keyword in name for keyword in high_risk_keywords):
         risk_score += 40
